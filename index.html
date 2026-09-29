@@ -1,0 +1,1860 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth"><head><script data-bard-client-injected="true">(function(firebaseConfig, initialAuthToken, appId) {
+        window.__firebase_config = firebaseConfig;
+        window.__initial_auth_token = initialAuthToken;
+        window.__app_id = appId;
+            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6IjExNjRiNzdiNDMzZDdhMDAyMWI4NjE4YjhjYTU3ZTMyZGI5MWUxMTMiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIxMTM2NjAxNDgxNDk5MjYzNTQ4OCIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjXzc4OTA5YTA3MTM2NTIyNTZfaW5kZXguaHRtbC0zNTMifSwiZXhwIjoxNzkwNzA2MDk4LCJpYXQiOjE3OTA3MDI0OTgsImFsZyI6IlJTMjU2In0.YfAcwvbtEvtzTI0zSYGz9tJnRVadn3pqzC9wgtrKoqGpyw832FYJ2CQ5TKs1nNhy1Dbyq1g3dQb-5wqmrbn-SvhpYJuJYWdbNKtHlZA2R5wdaJWX29Evfd12feav5qA1Ru2_D7Urpez6CkoqU5SkQZMxYFdt-8u7LRpC6Zu_2p1S_0q0TVe_dSVETMRdzGDW7_IhWhxuN6bABZ4cOj4cLv85ZB4UnKQhGuMsEAr6RDAISFuBuna8PeWnxLKIL68S6v8zfL-MWj3fs5tqGcVuP_JVxYDY7pIGvnPXAE6zQ8FYOMha9XO6x3MovG_AQuF3cqJsiYMpoklu6XzxQUJX2g","c_78909a0713652256_index.html-353")</script><script data-bard-client-injected="true">
+  document.addEventListener('input', (event) => {
+    if (event.target && (event.target.isContentEditable || event.target.hasAttribute('contenteditable'))) {
+      const clonedDoc = document.cloneNode(true);
+      const injectedScripts = clonedDoc.querySelectorAll('[data-bard-client-injected="true"]');
+      injectedScripts.forEach(el => el.remove());
+      window.parent.postMessage({
+        type: 'inlineEdit',
+        html: '<!DOCTYPE html>\n' + clonedDoc.documentElement.outerHTML
+      }, '*');
+    }
+  });
+</script><script data-bard-client-injected="true">(function(){'use strict';window.addEventListener("message",a=>{a.data&&a.data.type==="SUPPLEMENTAL_DATA_UPDATE"&&window.dispatchEvent(new CustomEvent("supplementaldataupdate",{detail:a.data.data}))});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const SCROLL_KEYS = new Set([
+    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+    ' ', 'Spacebar', 'PageUp', 'PageDown', 'Home', 'End',
+  ]);
+  const HORIZONTAL_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
+
+  function isTextEntryTarget(target) {
+    if (!target) return false;
+    const tagName = target.tagName;
+    return tagName === 'INPUT' || tagName === 'TEXTAREA' ||
+        tagName === 'SELECT' || target.isContentEditable === true;
+  }
+
+  // An element absorbs the key only if it both overflows on the axis being
+  // scrolled and is configured to scroll on that axis. The cheap dimension
+  // test runs first because getComputedStyle forces a style recalc, and this
+  // runs on every keypress. Each axis is read from its own longhand: the
+  // 'overflow' shorthand serializes as two values when the axes differ, which
+  // is the common 'overflow-x: hidden; overflow-y: auto' pane.
+  function canScroll(node, horizontal) {
+    const overflows = horizontal ? node.scrollWidth > node.clientWidth
+                                 : node.scrollHeight > node.clientHeight;
+    if (!overflows) return false;
+    const style = window.getComputedStyle(node);
+    const overflow = horizontal ? style.overflowX : style.overflowY;
+    return overflow === 'auto' || overflow === 'scroll';
+  }
+
+  // Walks up from the event target so nested scrollers keep their behavior.
+  // <body> is included because pages that pin the root height make it the
+  // scroll container.
+  function hasScrollableAncestor(target, horizontal) {
+    let node = target;
+    while (node && node !== document.documentElement) {
+      if (canScroll(node, horizontal)) return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
+  function rootCanScroll(horizontal) {
+    const scroller = document.scrollingElement || document.documentElement;
+    if (!scroller) return false;
+    // Tolerate a pixel of rounding so subpixel layouts do not look scrollable.
+    return horizontal ? scroller.scrollWidth > window.innerWidth + 1
+                      : scroller.scrollHeight > window.innerHeight + 1;
+  }
+
+  window.addEventListener('keydown', function(event) {
+    if (!SCROLL_KEYS.has(event.key)) return;
+    if (event.defaultPrevented) return;
+    // Alt and Meta turn arrows into browser history navigation, and Ctrl is
+    // reserved for shortcuts, so none of them are scroll intent.
+    if (event.altKey || event.metaKey || event.ctrlKey) return;
+
+    const target = event.target;
+    if (isTextEntryTarget(target)) return;
+
+    // Anything that can still absorb the scroll gets to keep it.
+    const horizontal = HORIZONTAL_KEYS.has(event.key);
+    if (rootCanScroll(horizontal)) return;
+    if (hasScrollableAncestor(target, horizontal)) return;
+
+    event.preventDefault();
+  }, {capture: true, passive: false});
+})();</script><script data-bard-client-injected="true">(function() {
+  // Ensure this script is executed only once
+  if (window.firebaseAuthBridgeScriptLoaded) {
+    return;
+  }
+  window.firebaseAuthBridgeScriptLoaded = true;
+
+  let nextTokenPromiseId = 0;
+
+  // Stores { resolve, reject } for ongoing token requests
+  const pendingTokenPromises = {};
+
+  // Listen for messages from the Host Application
+  window.addEventListener('message', function(event) {
+
+    const messageData = event.data;
+
+  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
+      const { success, token, error, promiseId } = messageData ?? {};
+      if (pendingTokenPromises[promiseId]) {
+        if (success) {
+          pendingTokenPromises[promiseId].resolve(token);
+        } else {
+          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
+        }
+        delete pendingTokenPromises[promiseId];
+      }
+    }
+  });
+
+  // Expose a function for the Generated App to request a new Firebase token
+  window.requestNewFirebaseToken = function() {
+    const currentPromiseId = nextTokenPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingTokenPromises[currentPromiseId] = { resolve, reject };
+    });
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'REQUEST_NEW_FIREBASE_TOKEN',
+        promiseId: currentPromiseId
+      }, '*');
+    } else {
+      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
+      delete pendingTokenPromises[currentPromiseId];
+    }
+    return promise;
+  };
+})();</script><script data-bard-client-injected="true">
+let realOriginalGetUserMedia = null;
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+}
+
+(function() {
+  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
+    try {
+      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
+        get: function() {
+          return undefined; // Or throw an error
+        },
+        configurable: false
+      });
+    } catch (error) {
+      console.error("Error defining prototype getter:", error);
+    }
+  }
+})();
+
+(function() {
+  const pendingMediaResolvers = {};
+  let nextMediaPromiseId = 0;
+
+  function requestMediaPermissions(constraints) {
+    const mediaPromiseId = nextMediaPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingMediaResolvers[mediaPromiseId] = (granted) => {
+        delete pendingMediaResolvers[mediaPromiseId];
+        resolve(granted);
+      };
+    });
+
+    window.parent.postMessage({
+      type: 'requestMediaPermission',
+      constraints: constraints,
+      promiseId: mediaPromiseId,
+    }, '*');
+
+    return promise;
+  }
+
+  let originalGetUserMedia = realOriginalGetUserMedia;
+
+  function interceptGetUserMedia() {
+    if (navigator.mediaDevices) {
+      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+        value: function(constraints) {
+          return requestMediaPermissions(constraints).then((granted) => {
+            if (granted) {
+              if (originalGetUserMedia) {
+                return originalGetUserMedia(constraints);
+              } else {
+                throw new Error("Original getUserMedia not available.");
+              }
+            } else {
+              throw new DOMException('Permission denied', 'NotAllowedError');
+            }
+          });
+        },
+        writable: false,
+        configurable: false
+      });
+    }
+  }
+
+  interceptGetUserMedia();
+
+  const observer = new MutationObserver(function(mutationsList, observer) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'childList' && mutation.addedNodes) {
+        mutation.addedNodes.forEach(node => {
+          if (node === navigator.mediaDevices) {
+            interceptGetUserMedia();
+          }
+        });
+      }
+    }
+  });
+
+  function interceptSpeechRecognition() {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      return;
+    }
+
+    const OriginalSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const SpeechRecognitionWrapper = function(...args) {
+      const recognizer = new OriginalSpeechRecognition(...args);
+      const originalStart = recognizer.start.bind(recognizer);
+
+      recognizer.start = function() {
+        requestMediaPermissions({ audio: true }).then(granted => {
+          if (granted) {
+            originalStart();
+          } else {
+            const errorEvent = new SpeechRecognitionErrorEvent('error');
+            errorEvent.error = 'not-allowed'; // This is the standard error for permission denial.
+            recognizer.dispatchEvent(errorEvent);
+          }
+        });
+      };
+
+      return recognizer;
+    };
+
+    SpeechRecognitionWrapper.prototype = OriginalSpeechRecognition.prototype;
+    SpeechRecognitionWrapper.prototype.constructor = SpeechRecognitionWrapper;
+
+    if (window.SpeechRecognition) {
+      window.SpeechRecognition = SpeechRecognitionWrapper;
+    }
+    if (window.webkitSpeechRecognition) {
+      window.webkitSpeechRecognition = SpeechRecognitionWrapper;
+    }
+  }
+
+  interceptSpeechRecognition();
+
+  window.addEventListener('message', function(event) {
+    if (event.data) {
+      if (event.data.type === 'resolveMediaPermission') {
+        const { promiseId, granted } = event.data;
+        if (pendingMediaResolvers[promiseId]) {
+          pendingMediaResolvers[promiseId](granted);
+        }
+      }
+    }
+  });
+
+})();</script><script ws-interception-config="{&quot;parentOrigin&quot;:&quot;https://gemini.google.com&quot;,&quot;proxiedDomains&quot;:[]}" data-bard-client-injected="true">(function(){'use strict';var u=typeof Object.defineProperties=="function"?Object.defineProperty:function(b,d,e){if(b==Array.prototype||b==Object.prototype)return b;b[d]=e.value;return b};function v(b){b=["object"==typeof globalThis&&globalThis,b,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var d=0;d<b.length;++d){var e=b[d];if(e&&e.Math==Math)return e}throw Error("Cannot find global object");}var w=v(this);
+function y(b,d){if(d)a:{var e=w;b=b.split(".");for(var h=0;h<b.length-1;h++){var k=b[h];if(!(k in e))break a;e=e[k]}b=b[b.length-1];h=e[b];d=d(h);d!=h&&d!=null&&u(e,b,{configurable:!0,writable:!0,value:d})}}function z(b){function d(h){return b.next(h)}function e(h){return b.throw(h)}return new Promise(function(h,k){function m(n){n.done?h(n.value):Promise.resolve(n.value).then(d,e).then(m,k)}m(b.next())})}y("globalThis",function(b){return b||w});/*
+
+ Copyright The Closure Library Authors.
+ SPDX-License-Identifier: Apache-2.0
+*/
+function A(b,d){function e(){}e.prototype=d.prototype;b.j=d.prototype;b.prototype=new e;b.prototype.constructor=b;b.h=function(h,k,m){for(var n=Array(arguments.length-2),p=2;p<arguments.length;p++)n[p-2]=arguments[p];return d.prototype[k].apply(h,n)}};function B(b,d,e="*"){function h(a){if(typeof a==="string")return F.encode(a).buffer;if(a instanceof ArrayBuffer)return a.slice(0);if(ArrayBuffer.isView(a))return a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength);throw Error("Invalid data type");}function k(a){a=h(a);var f={type:"send",data:new Uint8Array(a)},g;(g=r)==null||g.postMessage(f,[a])}function m(){if(!r)throw Error("Data port not captured yet.");r.onmessage=a=>{if(a.data.type==="message"){a=new MessageEvent("message",{data:G.decode(a.data.data)});
+let f;(f=c.onmessage)==null||f.call(c,a);c.dispatchEvent(a)}}}function n(){if(!t)throw Error("Control port not captured yet.");t.onmessage=a=>{switch(a.data.type){case "open":l=1;var f=new Event("open"),g;(g=c.onopen)==null||g.call(c,f);c.dispatchEvent(f);q.forEach(H=>{k(H)});q=[];break;case "close":g=a.data;l=3;g=new CloseEvent("close",{code:g.code,reason:g.reason,wasClean:g.wasClean});(f=c.onclose)==null||f.call(c,g);c.dispatchEvent(g);break;case "error":l=3;f=new Event("error");let x;(x=c.onerror)==
+null||x.call(c,f);c.dispatchEvent(f)}}}function p(a){return z(function*(){var f=new MessageChannel;t=f.port1;var g=new MessageChannel;r=g.port1;n();m();window.parent.postMessage({type:"websocket_open",portOrdering:["control","data"],url:b,protocols:a||[],connectionId:I},e,[f.port2,g.port2])}())}var c=Reflect.construct(EventTarget,[],new.target);c.CONNECTING=0;c.OPEN=1;c.CLOSING=2;c.CLOSED=3;c.url=b;c.binaryType="arraybuffer";c.protocol="";c.i="";var l=0,t=null,r=null,q=[],F=new TextEncoder,G=new TextDecoder;
+c.onopen=null;c.onmessage=null;c.onclose=null;c.onerror=null;Object.defineProperty(c,"readyState",{get:()=>l,enumerable:!0,configurable:!0});Object.defineProperty(c,"bufferedAmount",{get:()=>{var a=0;q.forEach(f=>{a+=typeof f==="string"?f.length:f.byteLength});return a},enumerable:!0,configurable:!0});var I=function(){var a;return((a=globalThis.crypto)==null?0:a.randomUUID)?globalThis.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,f=>{var g=Math.random()*16|0;return(f===
+"x"?g:g&3|8).toString(16)})}();c.send=a=>{if(l===1)a instanceof Blob?a.arrayBuffer().then(f=>{k(f)}):k(a);else if(l===0)if(typeof a==="string")q.push(a);else if(a instanceof ArrayBuffer||ArrayBuffer.isView(a))q.push(h(a));else throw Error("Sending Blob is not supported before the connection is open.");else console.debug("WebSocket send called in CLOSING or CLOSED state; ignored.")};c.close=(a=1E3,f="")=>{if(l!==2&&l!==3){l=2;a={type:"close",code:a,reason:f,wasClean:a===1E3};var g;(g=t)==null||g.postMessage(a)}};
+Promise.resolve().then(()=>p(d));return c}A(B,EventTarget);var C=document.currentScript,D=C==null?void 0:C.getAttribute("ws-interception-config");if(!D)throw Error("WebSocket Interceptor: Missing ws-interception-config attribute in the script tag.");var E=JSON.parse(D);if(!E.parentOrigin||typeof E.parentOrigin!=="string")throw Error("WebSocket Interceptor: Invalid parentOrigin in ws-interception-config");
+(function(b){var d=Object.getOwnPropertyDescriptor(window,"WebSocket");if(!d||d.writable||d.configurable)d=Object.assign(function(e,h){try{let k=(new URL(e)).hostname;if(b.proxiedDomains.some(m=>k===m||k.endsWith(`.${m}`)))return new B(e,h,b.parentOrigin)}catch(k){throw window.parent.postMessage({type:"websocket_blocked",url:e,reason:"blocked_invalid_url"},b.parentOrigin),new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");}window.parent.postMessage({type:"websocket_blocked",
+url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");},{CONNECTING:0,OPEN:1,CLOSING:2,CLOSED:3}),Object.defineProperty(window,"WebSocket",{value:d,writable:!1,configurable:!1})})({proxiedDomains:E.proxiedDomains||[],parentOrigin:E.parentOrigin});}).call(this);
+</script><script data-bard-client-injected="true">((function(modelInformation) {
+  const originalFetch = window.fetch;
+  // TODO: b/421908508 - Move these out of the script and match all generative AI model calls.
+  let googleLlmBaseApiUrls = [
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':streamGenerateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageEditModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageTransformModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.ttsModelName + ':generateContent',
+  ];
+  modelInformation.deprecatedTextModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+    );
+  });
+  modelInformation.deprecatedImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predict',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predictLongRunning',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedGenerateImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedImageTransformModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+
+  const pendingFetchResolvers = {};
+  let nextPromiseId = 0;
+
+  function handleStringInput(input, optionsArgument) {
+    const actualUrl = input;
+    const fetchCallArgs = [actualUrl, optionsArgument];
+    const effectiveOptions = optionsArgument || {};
+    const bodyForApiKeyCheck = effectiveOptions.body;
+    const bodyForPostMessage = effectiveOptions.body;
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  function handleRequestInput(input, optionsArgument) {
+    const actualUrl = input.url;
+    const fetchCallArgs = [input, optionsArgument];
+    const effectiveOptions = { method: input.method, headers: new Headers(input.headers) };
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (optionsArgument) {
+      if (optionsArgument.method) effectiveOptions.method = optionsArgument.method;
+      if (optionsArgument.headers) effectiveOptions.headers = new Headers(optionsArgument.headers);
+      if ('body' in optionsArgument) {
+        bodyForApiKeyCheck = optionsArgument.body;
+        bodyForPostMessage = optionsArgument.body;
+      } else {
+        bodyForApiKeyCheck = undefined;
+        bodyForPostMessage = input.body;
+      }
+    } else {
+      bodyForApiKeyCheck = undefined;
+      bodyForPostMessage = input.body;
+    }
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  window.fetch = function(input, optionsArgument) {
+    let actualUrl;
+    let fetchCallArgs;
+    let effectiveOptions = {};
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (typeof input === 'string') {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleStringInput(input, optionsArgument));
+    } else if (input instanceof Request) {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleRequestInput(input, optionsArgument));
+    } else {
+      return originalFetch.apply(window, [input, optionsArgument]);
+    }
+
+    effectiveOptions.method = effectiveOptions.method || 'GET';
+    if (!effectiveOptions.headers) {
+      effectiveOptions.headers = new Headers();
+    }
+
+
+    if (typeof actualUrl === 'string' && googleLlmBaseApiUrls.some((url) => actualUrl.startsWith(url))) {
+      let apiKeyIsNull = true;
+
+      const regex = new RegExp("models/([^:]+)");
+      const modelNameMatch = actualUrl.match(regex);
+      const modelName = modelNameMatch ? modelNameMatch[1] : 'unspecified';
+
+
+      try {
+        const urlObject = new URL(actualUrl);  // Use URL object for robust parsing
+        const apiKeyParam = urlObject.searchParams.get('key');
+        if (apiKeyParam) {
+          apiKeyIsNull = false;
+        }
+      } catch (e) {
+        // Continue checks even if URL parsing fails
+      }
+
+      if (apiKeyIsNull && effectiveOptions.headers) {
+        const h = new Headers(effectiveOptions.headers);
+        const apiKeyHeaderValue = h.get('X-API-Key') || h.get('x-api-key');
+        if (apiKeyHeaderValue) {
+          apiKeyIsNull = false;
+          return originalFetch.apply(window, fetchCallArgs);
+        }
+      }
+
+      if (apiKeyIsNull && effectiveOptions.method && ['POST', 'PUT', 'PATCH'].includes(effectiveOptions.method.toUpperCase()) && typeof bodyForApiKeyCheck === 'string') {
+        try {
+          const bodyData = JSON.parse(bodyForApiKeyCheck);
+          if (bodyData && bodyData.apiKey) {
+            apiKeyIsNull = false;
+            return originalFetch.apply(window, fetchCallArgs);
+          }
+        } catch (e) {
+          // Ignore JSON parsing errors
+        }
+      }
+
+      if(apiKeyIsNull) {
+        const promiseId = nextPromiseId++;
+        const promise = new Promise((resolve) => {
+          pendingFetchResolvers[promiseId] = (resolvedResponse) => {
+            delete pendingFetchResolvers[promiseId];
+            resolve(resolvedResponse);
+          };
+        });
+
+        let serializedBodyForPostMessage;
+        if (typeof bodyForPostMessage === 'string' || bodyForPostMessage == null) {
+            serializedBodyForPostMessage = bodyForPostMessage;
+        } else if (bodyForPostMessage instanceof ReadableStream) {
+            serializedBodyForPostMessage = null;
+        } else {
+            try {
+                serializedBodyForPostMessage = JSON.stringify(bodyForPostMessage);
+            } catch (e) {
+                serializedBodyForPostMessage = null;
+            }
+        }
+
+        const messageOptions = {
+            method: effectiveOptions.method,
+            headers: Object.fromEntries(new Headers(effectiveOptions.headers).entries()),
+            body: serializedBodyForPostMessage
+        };
+
+        window.parent.postMessage({
+          type: 'requestFetch',
+          url: actualUrl,
+          modelName: modelName,
+          options: messageOptions,
+          promiseId: promiseId,
+        }, '*');
+
+        return promise;
+      }
+      return originalFetch.apply(window, fetchCallArgs);
+    }
+    return originalFetch.apply(window, fetchCallArgs);
+  };
+
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'resolveFetch') {
+      const { promiseId, response } = event.data;
+      if (pendingFetchResolvers[promiseId]) {
+        try {
+          const reconstructedResponse = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers(response.headers),
+          });
+          pendingFetchResolvers[promiseId](reconstructedResponse);
+        } catch (error) {
+          pendingFetchResolvers[promiseId](new Response(null, { status: 500, statusText: "Interceptor Response Reconstruction Error" }));
+        }
+      }
+    }
+  });
+
+}))({"textModelName":"gemini-3-flash-preview","imageModelName":"imagen-4.0-generate-001","imageEditModelName":"gemini-3.1-flash-image","imageTransformModelName":"gemini-3-pro-image","videoModelName":"veo-2.0-generate-001","ttsModelName":"gemini-2.5-flash-preview-tts","deprecatedTextModelNames":["gemini-2.0-flash","gemini-2.5-flash","gemini-2.5-flash-preview-04-17","gemini-2.5-flash-preview-05-20","gemini-2.5-flash-preview-09-2025"],"deprecatedImageModelNames":["imagen-3.0-generate-001","imagen-3.0-generate-002"],"deprecatedGenerateImageModelNames":["gemini-2.5-flash-image-preview","gemini-2.5-flash-image","gemini-3.1-flash-image-preview"],"deprecatedImageTransformModelNames":["gemini-3-pro-image-preview-11-2025"]})</script><script data-bard-client-injected="true">(function(){'use strict';function a(){window.parent.postMessage({type:"interaction"},"*")}window.addEventListener("click",a,{capture:!0,passive:!0});window.addEventListener("touchstart",a,{capture:!0,passive:!0});window.addEventListener("keydown",a,{capture:!0,passive:!0});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+
+    /**
+   * Normalizes an error event or a promise rejection reason into a structured error object.
+   * @param {*} errorEventOrReason The error object or reason.
+   * @return {object} Structured error data { message, name, stack }.
+   */
+  function getErrorObject(errorEventOrReason) {
+    if (errorEventOrReason instanceof Error) {
+      return {
+        message: errorEventOrReason.message,
+        name: errorEventOrReason.name,
+        stack: errorEventOrReason.stack,
+      };
+    }
+    // Fallback for non-Error objects.
+    try {
+      return {
+        message: JSON.stringify(errorEventOrReason),
+        name: 'UnknownErrorType',
+        stack: null,
+      };
+    } catch (e) {
+      return {
+        message: String(errorEventOrReason),
+        name: 'UnknownErrorTypeNonStringifiable',
+        stack: null,
+      };
+    }
+  }
+
+  /**
+   * Converts an array of arguments (from log/error) into a single string.
+   * Handles Error objects specially to include their message and stack.
+   * @param {Array<*>} args - Arguments passed to console methods.
+   * @return {string} A string representation of the arguments.
+   */
+  function stringifyArgs(args) {
+    return args
+      .map((arg) => {
+        if (arg instanceof Error) {
+          const {message, stack} = arg;
+          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
+        }
+        if (typeof arg === 'object' && arg !== null) {
+          try {
+            return JSON.stringify(arg);
+          } catch (error) {
+            return '[Circular Object]';
+          }
+        } else {
+          return String(arg);
+        }
+      })
+      .join(' ');
+  }
+
+  console.log = function(...args) {
+    const logString = stringifyArgs(args);
+    window.parent.postMessage({ type: 'log', message: logString }, '*');
+    originalConsoleLog.apply(console, args);
+  };
+
+  console.error = function(...args) {
+    let errorData;
+    if (args.length > 0 && args[0] instanceof Error) {
+      const err = args[0];
+      // If the first arg is an Error, capture its details.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        ...getErrorObject(err),
+        rawArgsString: stringifyArgs(args.slice(1)),
+        timestamp: new Date().toISOString(),
+      };
+    } else {
+      // If not an Error object, treat all args as a general error message.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        message: stringifyArgs(args),
+        name: 'ConsoleLoggedError',
+        stack: null,
+        timestamp: new Date().toISOString(),
+      };
+    }
+    window.parent.postMessage(errorData, '*');
+    originalConsoleError.apply(console, args);
+  };
+
+  // Listen for global unhandled synchronous errors.
+  window.addEventListener('error', function(event) {
+    const errorDetails = event.error ? getErrorObject(event.error) : {
+      message: event.message,
+      name: 'GlobalError',
+      stack: null,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+    };
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'global',
+      ...errorDetails,
+      message: errorDetails.message || event.message,
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+  // Listen for unhandled promise rejections (asynchronous errors).
+  window.addEventListener('unhandledrejection', function(event) {
+    const errorDetails = getErrorObject(event.reason);
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'unhandledrejection',
+      ...errorDetails,
+      message: errorDetails.message || 'Unhandled Promise Rejection',
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+})();</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NovaPulse // Modern Tech &amp; Lifestyle Blog</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f5ff',
+              100: '#e0ebff',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              dark: '#0b0f19',
+              darkcard: '#121826',
+              border: 'rgba(255, 255, 255, 0.08)'
+            }
+          },
+          animation: {
+            'gradient-x': 'gradient-x 8s ease infinite',
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          },
+          keyframes: {
+            'gradient-x': {
+              '0%, 100%': { 'background-size': '200% 200%', 'background-position': 'left center' },
+              '50%': { 'background-size': '200% 200%', 'background-position': 'right center' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #080c14;
+      color: #e2e8f0;
+    }
+    .glass-card {
+      background: rgba(18, 24, 38, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .glass-card:hover {
+      border-color: rgba(99, 102, 241, 0.35);
+      box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.2);
+    }
+    .text-gradient {
+      background: linear-gradient(135deg, #a5b4fc 0%, #c084fc 50%, #f472b6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .gradient-border-btn {
+      position: relative;
+      background: linear-gradient(135deg, #6366f1, #d946ef);
+      border-radius: 9999px;
+      padding: 1px;
+    }
+    .gradient-border-btn-inner {
+      background: #0b0f19;
+      border-radius: 9999px;
+      transition: background 0.3s;
+    }
+    .gradient-border-btn:hover .gradient-border-btn-inner {
+      background: transparent;
+    }
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #080c14;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #252e42;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #4f46e5;
+    }
+  </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:"Plus Jakarta Sans", sans-serif;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:"JetBrains Mono", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.sticky{position:sticky}.inset-0{inset:0px}.-bottom-2{bottom:-0.5rem}.-bottom-40{bottom:-10rem}.-left-40{left:-10rem}.-right-2{right:-0.5rem}.-right-40{right:-10rem}.-top-40{top:-10rem}.bottom-4{bottom:1rem}.bottom-6{bottom:1.5rem}.left-0{left:0px}.left-1\/3{left:33.333333%}.left-3\.5{left:0.875rem}.left-6{left:1.5rem}.right-0{right:0px}.right-6{right:1.5rem}.top-0{top:0px}.top-1\/2{top:50%}.top-1\/3{top:33.333333%}.left-4{left:1rem}.top-4{top:1rem}.-z-10{z-index:-10}.z-10{z-index:10}.z-40{z-index:40}.z-50{z-index:50}.mx-auto{margin-left:auto;margin-right:auto}.my-6{margin-top:1.5rem;margin-bottom:1.5rem}.-mr-20{margin-right:-5rem}.-mt-20{margin-top:-5rem}.mb-10{margin-bottom:2.5rem}.mb-12{margin-bottom:3rem}.mb-16{margin-bottom:4rem}.mb-2{margin-bottom:0.5rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mb-5{margin-bottom:1.25rem}.mb-6{margin-bottom:1.5rem}.mb-8{margin-bottom:2rem}.ml-2{margin-left:0.5rem}.mr-1{margin-right:0.25rem}.mt-1{margin-top:0.25rem}.mt-12{margin-top:3rem}.mt-16{margin-top:4rem}.mt-2{margin-top:0.5rem}.mt-8{margin-top:2rem}.mt-auto{margin-top:auto}.line-clamp-2{overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}.block{display:block}.inline-block{display:inline-block}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.hidden{display:none}.h-1{height:0.25rem}.h-10{height:2.5rem}.h-12{height:3rem}.h-2{height:0.5rem}.h-20{height:5rem}.h-48{height:12rem}.h-8{height:2rem}.h-80{height:20rem}.h-9{height:2.25rem}.h-96{height:24rem}.h-7{height:1.75rem}.h-full{height:100%}.max-h-\[90vh\]{max-height:90vh}.min-h-screen{min-height:100vh}.w-10{width:2.5rem}.w-12{width:3rem}.w-2{width:0.5rem}.w-20{width:5rem}.w-48{width:12rem}.w-8{width:2rem}.w-9{width:2.25rem}.w-96{width:24rem}.w-full{width:100%}.w-7{width:1.75rem}.max-w-2xl{max-width:42rem}.max-w-3xl{max-width:48rem}.max-w-4xl{max-width:56rem}.max-w-6xl{max-width:72rem}.max-w-7xl{max-width:80rem}.max-w-md{max-width:28rem}.max-w-none{max-width:none}.flex-grow{flex-grow:1}.-translate-y-1\/2{--tw-translate-y:-50%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.translate-y-24{--tw-translate-y:6rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.translate-y-0{--tw-translate-y:0px;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.transform{transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@keyframes ping{75%, 100%{transform:scale(2);opacity:0}}.animate-ping{animation:ping 1s cubic-bezier(0, 0, 0.2, 1) infinite}@keyframes pulse{50%{opacity:.5}}.animate-pulse{animation:pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite}.cursor-pointer{cursor:pointer}.resize-none{resize:none}.list-inside{list-style-position:inside}.list-decimal{list-style-type:decimal}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-1\.5{gap:0.375rem}.gap-10{gap:2.5rem}.gap-2{gap:0.5rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.gap-6{gap:1.5rem}.gap-8{gap:2rem}.gap-2\.5{gap:0.625rem}.space-y-1 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.25rem * var(--tw-space-y-reverse))}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.space-y-6 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem * var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.overflow-y-auto{overflow-y:auto}.overflow-x-hidden{overflow-x:hidden}.scroll-smooth{scroll-behavior:smooth}.whitespace-nowrap{white-space:nowrap}.whitespace-pre{white-space:pre}.rounded{border-radius:0.25rem}.rounded-2xl{border-radius:1rem}.rounded-3xl{border-radius:1.5rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-0{border-width:0px}.border-2{border-width:2px}.border-b{border-bottom-width:1px}.border-l-4{border-left-width:4px}.border-t{border-top-width:1px}.border-\[\#080c14\]{--tw-border-opacity:1;border-color:rgb(8 12 20 / var(--tw-border-opacity, 1))}.border-indigo-400\/40{border-color:rgb(129 140 248 / 0.4)}.border-indigo-500{--tw-border-opacity:1;border-color:rgb(99 102 241 / var(--tw-border-opacity, 1))}.border-indigo-500\/30{border-color:rgb(99 102 241 / 0.3)}.border-indigo-500\/40{border-color:rgb(99 102 241 / 0.4)}.border-purple-500\/30{border-color:rgb(168 85 247 / 0.3)}.border-white\/10{border-color:rgb(255 255 255 / 0.1)}.border-white\/15{border-color:rgb(255 255 255 / 0.15)}.border-white\/5{border-color:rgb(255 255 255 / 0.05)}.bg-\[\#05070d\]{--tw-bg-opacity:1;background-color:rgb(5 7 13 / var(--tw-bg-opacity, 1))}.bg-\[\#080c14\]{--tw-bg-opacity:1;background-color:rgb(8 12 20 / var(--tw-bg-opacity, 1))}.bg-\[\#080c14\]\/80{background-color:rgb(8 12 20 / 0.8)}.bg-\[\#0b0f19\]{--tw-bg-opacity:1;background-color:rgb(11 15 25 / var(--tw-bg-opacity, 1))}.bg-\[\#0d121f\]{--tw-bg-opacity:1;background-color:rgb(13 18 31 / var(--tw-bg-opacity, 1))}.bg-\[\#0e1320\]{--tw-bg-opacity:1;background-color:rgb(14 19 32 / var(--tw-bg-opacity, 1))}.bg-\[\#121826\]{--tw-bg-opacity:1;background-color:rgb(18 24 38 / var(--tw-bg-opacity, 1))}.bg-\[\#121826\]\/90{background-color:rgb(18 24 38 / 0.9)}.bg-black\/80{background-color:rgb(0 0 0 / 0.8)}.bg-indigo-400{--tw-bg-opacity:1;background-color:rgb(129 140 248 / var(--tw-bg-opacity, 1))}.bg-indigo-500\/10{background-color:rgb(99 102 241 / 0.1)}.bg-indigo-500\/15{background-color:rgb(99 102 241 / 0.15)}.bg-indigo-500\/20{background-color:rgb(99 102 241 / 0.2)}.bg-indigo-500\/5{background-color:rgb(99 102 241 / 0.05)}.bg-indigo-600{--tw-bg-opacity:1;background-color:rgb(79 70 229 / var(--tw-bg-opacity, 1))}.bg-indigo-600\/15{background-color:rgb(79 70 229 / 0.15)}.bg-indigo-600\/30{background-color:rgb(79 70 229 / 0.3)}.bg-indigo-950\/20{background-color:rgb(30 27 75 / 0.2)}.bg-indigo-950\/90{background-color:rgb(30 27 75 / 0.9)}.bg-pink-600\/15{background-color:rgb(219 39 119 / 0.15)}.bg-purple-600\/15{background-color:rgb(147 51 234 / 0.15)}.bg-purple-600\/20{background-color:rgb(147 51 234 / 0.2)}.bg-transparent{background-color:transparent}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-white\/10{background-color:rgb(255 255 255 / 0.1)}.bg-white\/5{background-color:rgb(255 255 255 / 0.05)}.bg-black\/60{background-color:rgb(0 0 0 / 0.6)}.bg-gradient-to-br{background-image:linear-gradient(to bottom right, var(--tw-gradient-stops))}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.bg-gradient-to-t{background-image:linear-gradient(to top, var(--tw-gradient-stops))}.bg-gradient-to-tr{background-image:linear-gradient(to top right, var(--tw-gradient-stops))}.from-\[\#080c14\]{--tw-gradient-from:#080c14 var(--tw-gradient-from-position);--tw-gradient-to:rgb(8 12 20 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-emerald-500{--tw-gradient-from:#10b981 var(--tw-gradient-from-position);--tw-gradient-to:rgb(16 185 129 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-indigo-400{--tw-gradient-from:#818cf8 var(--tw-gradient-from-position);--tw-gradient-to:rgb(129 140 248 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-indigo-500{--tw-gradient-from:#6366f1 var(--tw-gradient-from-position);--tw-gradient-to:rgb(99 102 241 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-indigo-500\/30{--tw-gradient-from:rgb(99 102 241 / 0.3) var(--tw-gradient-from-position);--tw-gradient-to:rgb(99 102 241 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-indigo-600{--tw-gradient-from:#4f46e5 var(--tw-gradient-from-position);--tw-gradient-to:rgb(79 70 229 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-pink-400{--tw-gradient-from:#f472b6 var(--tw-gradient-from-position);--tw-gradient-to:rgb(244 114 182 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-purple-400{--tw-gradient-from:#c084fc var(--tw-gradient-from-position);--tw-gradient-to:rgb(192 132 252 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-teal-400{--tw-gradient-from:#2dd4bf var(--tw-gradient-from-position);--tw-gradient-to:rgb(45 212 191 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-\[\#121826\]{--tw-gradient-from:#121826 var(--tw-gradient-from-position);--tw-gradient-to:rgb(18 24 38 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.via-purple-500{--tw-gradient-to:rgb(168 85 247 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #a855f7 var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-purple-500\/20{--tw-gradient-to:rgb(168 85 247 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), rgb(168 85 247 / 0.2) var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-purple-600{--tw-gradient-to:rgb(147 51 234 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #9333ea var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-transparent{--tw-gradient-to:rgb(0 0 0 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), transparent var(--tw-gradient-via-position), var(--tw-gradient-to)}.to-green-500{--tw-gradient-to:#22c55e var(--tw-gradient-to-position)}.to-indigo-400{--tw-gradient-to:#818cf8 var(--tw-gradient-to-position)}.to-pink-400{--tw-gradient-to:#f472b6 var(--tw-gradient-to-position)}.to-pink-500{--tw-gradient-to:#ec4899 var(--tw-gradient-to-position)}.to-purple-400{--tw-gradient-to:#c084fc var(--tw-gradient-to-position)}.to-purple-600{--tw-gradient-to:#9333ea var(--tw-gradient-to-position)}.to-rose-400{--tw-gradient-to:#fb7185 var(--tw-gradient-to-position)}.to-transparent{--tw-gradient-to:transparent var(--tw-gradient-to-position)}.bg-clip-text{-webkit-background-clip:text;background-clip:text}.object-cover{object-fit:cover}.p-1\.5{padding:0.375rem}.p-2{padding:0.5rem}.p-2\.5{padding:0.625rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.p-8{padding:2rem}.px-1{padding-left:0.25rem;padding-right:0.25rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-12{padding-top:3rem;padding-bottom:3rem}.py-16{padding-top:4rem;padding-bottom:4rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-3\.5{padding-top:0.875rem;padding-bottom:0.875rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-6{padding-top:1.5rem;padding-bottom:1.5rem}.py-8{padding-top:2rem;padding-bottom:2rem}.pb-12{padding-bottom:3rem}.pb-2{padding-bottom:0.5rem}.pb-20{padding-bottom:5rem}.pb-4{padding-bottom:1rem}.pb-6{padding-bottom:1.5rem}.pl-9{padding-left:2.25rem}.pr-4{padding-right:1rem}.pt-10{padding-top:2.5rem}.pt-2{padding-top:0.5rem}.pt-3{padding-top:0.75rem}.pt-4{padding-top:1rem}.pt-6{padding-top:1.5rem}.pt-8{padding-top:2rem}.text-left{text-align:left}.text-center{text-align:center}.font-mono{font-family:"JetBrains Mono", monospace}.font-sans{font-family:"Plus Jakarta Sans", sans-serif}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-4xl{font-size:2.25rem;line-height:2.5rem}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-medium{font-weight:500}.font-normal{font-weight:400}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.italic{font-style:italic}.leading-relaxed{line-height:1.625}.leading-tight{line-height:1.25}.leading-snug{line-height:1.375}.tracking-tight{letter-spacing:-0.025em}.tracking-wider{letter-spacing:0.05em}.tracking-widest{letter-spacing:0.1em}.text-cyan-300{--tw-text-opacity:1;color:rgb(103 232 249 / var(--tw-text-opacity, 1))}.text-gray-200{--tw-text-opacity:1;color:rgb(229 231 235 / var(--tw-text-opacity, 1))}.text-gray-300{--tw-text-opacity:1;color:rgb(209 213 219 / var(--tw-text-opacity, 1))}.text-gray-400{--tw-text-opacity:1;color:rgb(156 163 175 / var(--tw-text-opacity, 1))}.text-gray-500{--tw-text-opacity:1;color:rgb(107 114 128 / var(--tw-text-opacity, 1))}.text-gray-600{--tw-text-opacity:1;color:rgb(75 85 99 / var(--tw-text-opacity, 1))}.text-indigo-200{--tw-text-opacity:1;color:rgb(199 210 254 / var(--tw-text-opacity, 1))}.text-indigo-300{--tw-text-opacity:1;color:rgb(165 180 252 / var(--tw-text-opacity, 1))}.text-indigo-400{--tw-text-opacity:1;color:rgb(129 140 248 / var(--tw-text-opacity, 1))}.text-pink-300{--tw-text-opacity:1;color:rgb(249 168 212 / var(--tw-text-opacity, 1))}.text-pink-400{--tw-text-opacity:1;color:rgb(244 114 182 / var(--tw-text-opacity, 1))}.text-purple-300{--tw-text-opacity:1;color:rgb(216 180 254 / var(--tw-text-opacity, 1))}.text-purple-400{--tw-text-opacity:1;color:rgb(192 132 252 / var(--tw-text-opacity, 1))}.text-red-500{--tw-text-opacity:1;color:rgb(239 68 68 / var(--tw-text-opacity, 1))}.text-transparent{color:transparent}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-yellow-400{--tw-text-opacity:1;color:rgb(250 204 21 / var(--tw-text-opacity, 1))}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.placeholder-gray-500::placeholder{--tw-placeholder-opacity:1;color:rgb(107 114 128 / var(--tw-placeholder-opacity, 1))}.opacity-0{opacity:0}.opacity-80{opacity:0.8}.opacity-100{opacity:1}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-inner{--tw-shadow:inset 0 2px 4px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:inset 0 2px 4px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-indigo-500\/20{--tw-shadow-color:rgb(99 102 241 / 0.2);--tw-shadow:var(--tw-shadow-colored)}.shadow-indigo-500\/25{--tw-shadow-color:rgb(99 102 241 / 0.25);--tw-shadow:var(--tw-shadow-colored)}.shadow-indigo-600\/30{--tw-shadow-color:rgb(79 70 229 / 0.3);--tw-shadow:var(--tw-shadow-colored)}.shadow-purple-500\/10{--tw-shadow-color:rgb(168 85 247 / 0.1);--tw-shadow:var(--tw-shadow-colored)}.blur-3xl{--tw-blur:blur(64px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.blur-\[120px\]{--tw-blur:blur(120px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.blur-\[140px\]{--tw-blur:blur(140px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.filter{filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur-md{--tw-backdrop-blur:blur(12px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.backdrop-blur-xl{--tw-backdrop-blur:blur(24px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-150{transition-duration:150ms}.duration-200{transition-duration:200ms}.duration-300{transition-duration:300ms}.duration-500{transition-duration:500ms}.selection\:bg-indigo-500 *::selection{--tw-bg-opacity:1;background-color:rgb(99 102 241 / var(--tw-bg-opacity, 1))}.selection\:text-white *::selection{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.selection\:bg-indigo-500::selection{--tw-bg-opacity:1;background-color:rgb(99 102 241 / var(--tw-bg-opacity, 1))}.selection\:text-white::selection{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.focus-within\:border-indigo-500:focus-within{--tw-border-opacity:1;border-color:rgb(99 102 241 / var(--tw-border-opacity, 1))}.hover\:-translate-y-0\.5:hover{--tw-translate-y:-0.125rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:-translate-y-1:hover{--tw-translate-y:-0.25rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:bg-indigo-500:hover{--tw-bg-opacity:1;background-color:rgb(99 102 241 / var(--tw-bg-opacity, 1))}.hover\:bg-indigo-500\/20:hover{background-color:rgb(99 102 241 / 0.2)}.hover\:bg-indigo-600:hover{--tw-bg-opacity:1;background-color:rgb(79 70 229 / var(--tw-bg-opacity, 1))}.hover\:bg-red-500\/20:hover{background-color:rgb(239 68 68 / 0.2)}.hover\:bg-white\/10:hover{background-color:rgb(255 255 255 / 0.1)}.hover\:bg-white\/20:hover{background-color:rgb(255 255 255 / 0.2)}.hover\:bg-white\/5:hover{background-color:rgb(255 255 255 / 0.05)}.hover\:bg-yellow-500\/20:hover{background-color:rgb(234 179 8 / 0.2)}.hover\:from-indigo-600:hover{--tw-gradient-from:#4f46e5 var(--tw-gradient-from-position);--tw-gradient-to:rgb(79 70 229 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.hover\:to-purple-700:hover{--tw-gradient-to:#7e22ce var(--tw-gradient-to-position)}.hover\:text-indigo-400:hover{--tw-text-opacity:1;color:rgb(129 140 248 / var(--tw-text-opacity, 1))}.hover\:text-red-400:hover{--tw-text-opacity:1;color:rgb(248 113 113 / var(--tw-text-opacity, 1))}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.hover\:text-yellow-400:hover{--tw-text-opacity:1;color:rgb(250 204 21 / var(--tw-text-opacity, 1))}.hover\:text-indigo-300:hover{--tw-text-opacity:1;color:rgb(165 180 252 / var(--tw-text-opacity, 1))}.hover\:underline:hover{-webkit-text-decoration-line:underline;text-decoration-line:underline}.hover\:opacity-95:hover{opacity:0.95}.hover\:shadow-purple-500\/25:hover{--tw-shadow-color:rgb(168 85 247 / 0.25);--tw-shadow:var(--tw-shadow-colored)}.focus\:border-indigo-500:focus{--tw-border-opacity:1;border-color:rgb(99 102 241 / var(--tw-border-opacity, 1))}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.group:hover .group-hover\:rotate-12{--tw-rotate:12deg;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:scale-105{--tw-scale-x:1.05;--tw-scale-y:1.05;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:text-indigo-300{--tw-text-opacity:1;color:rgb(165 180 252 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:text-indigo-400{--tw-text-opacity:1;color:rgb(129 140 248 / var(--tw-text-opacity, 1))}@media (min-width: 640px){.sm\:inline-block{display:inline-block}.sm\:h-56{height:14rem}.sm\:h-96{height:24rem}.sm\:w-56{width:14rem}.sm\:w-64{width:16rem}.sm\:w-auto{width:auto}.sm\:flex-row{flex-direction:row}.sm\:items-start{align-items:flex-start}.sm\:justify-start{justify-content:flex-start}.sm\:p-12{padding:3rem}.sm\:p-14{padding:3.5rem}.sm\:px-6{padding-left:1.5rem;padding-right:1.5rem}.sm\:pb-0{padding-bottom:0px}.sm\:text-left{text-align:left}.sm\:text-3xl{font-size:1.875rem;line-height:2.25rem}.sm\:text-4xl{font-size:2.25rem;line-height:2.5rem}.sm\:text-5xl{font-size:3rem;line-height:1}.sm\:text-base{font-size:1rem;line-height:1.5rem}.sm\:text-lg{font-size:1.125rem;line-height:1.75rem}.sm\:text-sm{font-size:0.875rem;line-height:1.25rem}}@media (min-width: 768px){.md\:flex{display:flex}.md\:hidden{display:none}.md\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.md\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}.md\:flex-row{flex-direction:row}.md\:text-left{text-align:left}}@media (min-width: 1024px){.lg\:col-span-4{grid-column:span 4 / span 4}.lg\:col-span-8{grid-column:span 8 / span 8}.lg\:grid-cols-12{grid-template-columns:repeat(12, minmax(0, 1fr))}.lg\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.lg\:p-16{padding:4rem}.lg\:px-8{padding-left:2rem;padding-right:2rem}.lg\:text-left{text-align:left}.lg\:text-5xl{font-size:3rem;line-height:1}.lg\:text-6xl{font-size:3.75rem;line-height:1}}</style></head>
+<body class="min-h-screen flex flex-col font-sans selection:bg-indigo-500 selection:text-white antialiased relative overflow-x-hidden">
+
+  <!-- Reading Progress Bar (Active for Post View) -->
+  <div id="scrollProgressBar" class="fixed top-0 left-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 z-50 transition-all duration-150" style="width: 75.0772%;"></div>
+
+  <!-- Background Ambient Glow Blobs -->
+  <div class="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+    <div class="absolute -top-40 -left-40 w-96 h-96 bg-indigo-600/15 rounded-full filter blur-[120px]"></div>
+    <div class="absolute top-1/3 -right-40 w-96 h-96 bg-purple-600/15 rounded-full filter blur-[120px]"></div>
+    <div class="absolute -bottom-40 left-1/3 w-96 h-96 bg-pink-600/15 rounded-full filter blur-[140px]"></div>
+  </div>
+
+  <header class="sticky top-0 z-40 backdrop-blur-xl bg-[#080c14]/80 border-b border-white/5 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <!-- Logo -->
+      <a href="javascript:void(0)" onclick="navigateTo('home')" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform duration-300">
+          <i class="fa-solid fa-bolt text-white text-lg"></i>
+        </div>
+        <div>
+          <span class="text-xl font-bold tracking-tight text-white group-hover:text-indigo-300 transition-colors">Nova<span class="text-gradient">Pulse</span></span>
+          <span class="hidden sm:inline-block text-[10px] tracking-widest font-mono uppercase bg-white/5 text-gray-400 px-2 py-0.5 rounded-full ml-2 border border-white/10">v2.4</span>
+        </div>
+      </a>
+
+      <!-- Page Switcher Tabs (Simulates separate HTML files) -->
+      <nav class="hidden md:flex items-center gap-1 bg-[#121826]/90 p-1.5 rounded-full border border-white/10 shadow-inner">
+        <button id="nav-btn-home" onclick="navigateTo('home')" class="nav-item active-nav px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 text-white bg-indigo-600 shadow-md shadow-indigo-600/30 flex items-center gap-2">
+          <i class="fa-solid fa-compass text-xs"></i> <span>Feed (index.html)</span>
+        </button>
+        <button id="nav-btn-post" onclick="navigateTo('post')" class="nav-item px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 text-gray-400 hover:text-white hover:bg-white/5 flex items-center gap-2">
+          <i class="fa-solid fa-file-lines text-xs"></i> <span>Article (post.html)</span>
+        </button>
+        <button id="nav-btn-about" onclick="navigateTo('about')" class="nav-item px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 text-gray-400 hover:text-white hover:bg-white/5 flex items-center gap-2">
+          <i class="fa-solid fa-user-astronaut text-xs"></i> <span>About (about.html)</span>
+        </button>
+      </nav>
+
+      <!-- Actions: Search & GitHub Export Modal Trigger -->
+      <div class="flex items-center gap-3">
+        <button onclick="toggleExportModal()" class="gradient-border-btn flex items-center group cursor-pointer shadow-lg shadow-purple-500/10 hover:shadow-purple-500/25 transition-all">
+          <span class="gradient-border-btn-inner px-4 py-2 text-xs sm:text-sm font-semibold text-white flex items-center gap-2">
+            <i class="fa-brands fa-github text-sm sm:text-base group-hover:rotate-12 transition-transform"></i>
+            <span>Export to GitHub</span>
+          </span>
+        </button>
+
+        <!-- Mobile hamburger menu button -->
+        <button onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-xl text-gray-400 hover:text-white bg-white/5 border border-white/10">
+          <i class="fa-solid fa-bars text-lg"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Dropdown -->
+    <div id="mobileMenu" class="hidden md:hidden px-4 pt-2 pb-4 border-t border-white/5 bg-[#0b0f19]">
+      <div class="flex flex-col gap-2 pt-2">
+        <button onclick="navigateTo('home'); toggleMobileMenu()" class="text-left px-4 py-2.5 rounded-lg text-sm font-medium text-white bg-indigo-600/30 border border-indigo-500/30 flex items-center gap-3">
+          <i class="fa-solid fa-compass text-indigo-400"></i> Feed (index.html)
+        </button>
+        <button onclick="navigateTo('post'); toggleMobileMenu()" class="text-left px-4 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/5 flex items-center gap-3">
+          <i class="fa-solid fa-file-lines text-purple-400"></i> Featured Article (post.html)
+        </button>
+        <button onclick="navigateTo('about'); toggleMobileMenu()" class="text-left px-4 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/5 flex items-center gap-3">
+          <i class="fa-solid fa-user-astronaut text-pink-400"></i> Author &amp; Contact (about.html)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="page-home" class="page-content flex-grow">
+    <!-- Hero / Featured Section -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-12">
+      <div class="relative rounded-3xl overflow-hidden glass-card border border-white/10 p-8 sm:p-12 lg:p-16">
+        <!-- Glow backing -->
+        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-gradient-to-br from-indigo-500/30 via-purple-500/20 to-transparent rounded-full filter blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 max-w-3xl">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 mb-6">
+            <span class="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span>
+            Featured Longform Story
+          </div>
+          <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white mb-6 leading-tight">
+            The Architecture of <span class="text-gradient">Agentic Intelligence</span> in Modern Web Engines
+          </h1>
+          <p class="text-base sm:text-lg text-gray-300 mb-8 leading-relaxed">
+            How autonomous tool calling, vector caches, and edge-native neural runtimes are rewriting our approach to responsive software in 2026.
+          </p>
+          <div class="flex flex-wrap items-center gap-6">
+            <button onclick="navigateTo('post')" class="px-6 py-3.5 rounded-full bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 text-white font-medium hover:opacity-95 shadow-lg shadow-indigo-500/25 transition-all transform hover:-translate-y-0.5 flex items-center gap-2">
+              <span>Read Full Article</span>
+              <i class="fa-solid fa-arrow-right text-xs"></i>
+            </button>
+            <div class="flex items-center gap-3">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&amp;fit=crop&amp;w=120&amp;h=120&amp;q=80" alt="Elena Vance" class="w-10 h-10 rounded-full border border-indigo-400/40 object-cover">
+              <div>
+                <p class="text-sm font-semibold text-white">Elena Vance</p>
+                <p class="text-xs text-gray-400">Sep 28, 2026 • 8 min read</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Category Filters -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex items-center justify-between flex-wrap gap-4 border-b border-white/5 pb-6">
+        <div class="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto scrollbar-none" id="categoryChips">
+          <button onclick="filterPosts('all', this)" class="category-chip px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-sm transition-all whitespace-nowrap">All Insights</button>
+          <button onclick="filterPosts('ai', this)" class="category-chip px-4 py-2 rounded-xl text-xs font-semibold bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 border border-white/5 transition-all whitespace-nowrap">Artificial Intelligence</button>
+          <button onclick="filterPosts('engineering', this)" class="category-chip px-4 py-2 rounded-xl text-xs font-semibold bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 border border-white/5 transition-all whitespace-nowrap">System Architecture</button>
+          <button onclick="filterPosts('design', this)" class="category-chip px-4 py-2 rounded-xl text-xs font-semibold bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 border border-white/5 transition-all whitespace-nowrap">Design &amp; UX</button>
+          <button onclick="filterPosts('future', this)" class="category-chip px-4 py-2 rounded-xl text-xs font-semibold bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 border border-white/5 transition-all whitespace-nowrap">Future Tech</button>
+        </div>
+        <div class="relative w-full sm:w-64">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+          <input type="text" id="searchInput" oninput="searchPosts(this.value)" placeholder="Search articles..." class="w-full bg-[#121826] border border-white/10 rounded-xl pl-9 pr-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition-colors">
+        </div>
+      </div>
+    </section>
+
+    <!-- Blog Posts Grid -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div id="postsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <article class="glass-card rounded-3xl overflow-hidden border border-white/10 flex flex-col group transition-all duration-300 hover:-translate-y-1">
+          <div class="relative h-48 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="The Architecture of Agentic Intelligence in Modern Web Engines" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#121826] via-transparent to-transparent opacity-80"></div>
+            <span class="absolute top-4 left-4 text-xs font-semibold px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-indigo-300 border border-white/10">
+              Artificial Intelligence
+            </span>
+          </div>
+          <div class="p-6 flex flex-col flex-grow justify-between">
+            <div>
+              <div class="flex items-center gap-2 text-xs text-gray-400 mb-3">
+                <span>Sep 28, 2026</span>
+                <span>•</span>
+                <span>8 min read</span>
+              </div>
+              <h3 onclick="navigateTo('post')" class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors cursor-pointer leading-snug mb-3">
+                The Architecture of Agentic Intelligence in Modern Web Engines
+              </h3>
+              <p class="text-gray-400 text-sm leading-relaxed mb-6 line-clamp-2">
+                How autonomous tool calling, vector caches, and edge-native neural runtimes are rewriting reactive UI pipelines.
+              </p>
+            </div>
+            <div class="flex items-center justify-between pt-4 border-t border-white/5">
+              <div class="flex items-center gap-2.5">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&amp;fit=crop&amp;w=100&amp;h=100&amp;q=80" alt="Elena Vance" class="w-7 h-7 rounded-full object-cover">
+                <span class="text-xs font-semibold text-gray-300">Elena Vance</span>
+              </div>
+              <button onclick="navigateTo('post')" class="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
+                Read <i class="fa-solid fa-arrow-right text-[10px]"></i>
+              </button>
+            </div>
+          </div>
+        </article>
+      
+        <article class="glass-card rounded-3xl overflow-hidden border border-white/10 flex flex-col group transition-all duration-300 hover:-translate-y-1">
+          <div class="relative h-48 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1629654297299-c8506221ca97?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="Micro-Frontends with WebAssembly &amp; Rust in 2026" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#121826] via-transparent to-transparent opacity-80"></div>
+            <span class="absolute top-4 left-4 text-xs font-semibold px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-indigo-300 border border-white/10">
+              System Architecture
+            </span>
+          </div>
+          <div class="p-6 flex flex-col flex-grow justify-between">
+            <div>
+              <div class="flex items-center gap-2 text-xs text-gray-400 mb-3">
+                <span>Sep 25, 2026</span>
+                <span>•</span>
+                <span>5 min read</span>
+              </div>
+              <h3 onclick="navigateTo('post')" class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors cursor-pointer leading-snug mb-3">
+                Micro-Frontends with WebAssembly &amp; Rust in 2026
+              </h3>
+              <p class="text-gray-400 text-sm leading-relaxed mb-6 line-clamp-2">
+                Why compiling isolated components down to native wasm modules gives 60fps animations on lower-end hardware.
+              </p>
+            </div>
+            <div class="flex items-center justify-between pt-4 border-t border-white/5">
+              <div class="flex items-center gap-2.5">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&amp;fit=crop&amp;w=100&amp;h=100&amp;q=80" alt="Marcus Chen" class="w-7 h-7 rounded-full object-cover">
+                <span class="text-xs font-semibold text-gray-300">Marcus Chen</span>
+              </div>
+              <button onclick="navigateTo('post')" class="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
+                Read <i class="fa-solid fa-arrow-right text-[10px]"></i>
+              </button>
+            </div>
+          </div>
+        </article>
+      
+        <article class="glass-card rounded-3xl overflow-hidden border border-white/10 flex flex-col group transition-all duration-300 hover:-translate-y-1">
+          <div class="relative h-48 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="Beyond Flat Design: The Comeback of Vivid Glass Gradients" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#121826] via-transparent to-transparent opacity-80"></div>
+            <span class="absolute top-4 left-4 text-xs font-semibold px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-indigo-300 border border-white/10">
+              Design &amp; UX
+            </span>
+          </div>
+          <div class="p-6 flex flex-col flex-grow justify-between">
+            <div>
+              <div class="flex items-center gap-2 text-xs text-gray-400 mb-3">
+                <span>Sep 20, 2026</span>
+                <span>•</span>
+                <span>4 min read</span>
+              </div>
+              <h3 onclick="navigateTo('post')" class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors cursor-pointer leading-snug mb-3">
+                Beyond Flat Design: The Comeback of Vivid Glass Gradients
+              </h3>
+              <p class="text-gray-400 text-sm leading-relaxed mb-6 line-clamp-2">
+                Modern GPU-accelerated backdrop filters allow nuanced optical refraction that elevates visual hierarchy.
+              </p>
+            </div>
+            <div class="flex items-center justify-between pt-4 border-t border-white/5">
+              <div class="flex items-center gap-2.5">
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&amp;fit=crop&amp;w=100&amp;h=100&amp;q=80" alt="Sarah Sterling" class="w-7 h-7 rounded-full object-cover">
+                <span class="text-xs font-semibold text-gray-300">Sarah Sterling</span>
+              </div>
+              <button onclick="navigateTo('post')" class="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
+                Read <i class="fa-solid fa-arrow-right text-[10px]"></i>
+              </button>
+            </div>
+          </div>
+        </article>
+      
+        <article class="glass-card rounded-3xl overflow-hidden border border-white/10 flex flex-col group transition-all duration-300 hover:-translate-y-1">
+          <div class="relative h-48 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="Quantum Key Distribution Protocols for Web Developers" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#121826] via-transparent to-transparent opacity-80"></div>
+            <span class="absolute top-4 left-4 text-xs font-semibold px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-indigo-300 border border-white/10">
+              Future Tech
+            </span>
+          </div>
+          <div class="p-6 flex flex-col flex-grow justify-between">
+            <div>
+              <div class="flex items-center gap-2 text-xs text-gray-400 mb-3">
+                <span>Sep 14, 2026</span>
+                <span>•</span>
+                <span>11 min read</span>
+              </div>
+              <h3 onclick="navigateTo('post')" class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors cursor-pointer leading-snug mb-3">
+                Quantum Key Distribution Protocols for Web Developers
+              </h3>
+              <p class="text-gray-400 text-sm leading-relaxed mb-6 line-clamp-2">
+                Preparing TLS handshakes and asymmetric crypto keys for post-quantum decryption resistance.
+              </p>
+            </div>
+            <div class="flex items-center justify-between pt-4 border-t border-white/5">
+              <div class="flex items-center gap-2.5">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&amp;fit=crop&amp;w=100&amp;h=100&amp;q=80" alt="Elena Vance" class="w-7 h-7 rounded-full object-cover">
+                <span class="text-xs font-semibold text-gray-300">Elena Vance</span>
+              </div>
+              <button onclick="navigateTo('post')" class="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
+                Read <i class="fa-solid fa-arrow-right text-[10px]"></i>
+              </button>
+            </div>
+          </div>
+        </article>
+      
+        <article class="glass-card rounded-3xl overflow-hidden border border-white/10 flex flex-col group transition-all duration-300 hover:-translate-y-1">
+          <div class="relative h-48 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="Zero-Latency Optimistic State in Distributed CRDTs" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#121826] via-transparent to-transparent opacity-80"></div>
+            <span class="absolute top-4 left-4 text-xs font-semibold px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-indigo-300 border border-white/10">
+              System Architecture
+            </span>
+          </div>
+          <div class="p-6 flex flex-col flex-grow justify-between">
+            <div>
+              <div class="flex items-center gap-2 text-xs text-gray-400 mb-3">
+                <span>Sep 09, 2026</span>
+                <span>•</span>
+                <span>7 min read</span>
+              </div>
+              <h3 onclick="navigateTo('post')" class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors cursor-pointer leading-snug mb-3">
+                Zero-Latency Optimistic State in Distributed CRDTs
+              </h3>
+              <p class="text-gray-400 text-sm leading-relaxed mb-6 line-clamp-2">
+                Collaborative canvas and document editors without server round-trip jitters using state-based CRDTs.
+              </p>
+            </div>
+            <div class="flex items-center justify-between pt-4 border-t border-white/5">
+              <div class="flex items-center gap-2.5">
+                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&amp;fit=crop&amp;w=100&amp;h=100&amp;q=80" alt="David Thorne" class="w-7 h-7 rounded-full object-cover">
+                <span class="text-xs font-semibold text-gray-300">David Thorne</span>
+              </div>
+              <button onclick="navigateTo('post')" class="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
+                Read <i class="fa-solid fa-arrow-right text-[10px]"></i>
+              </button>
+            </div>
+          </div>
+        </article>
+      
+        <article class="glass-card rounded-3xl overflow-hidden border border-white/10 flex flex-col group transition-all duration-300 hover:-translate-y-1">
+          <div class="relative h-48 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&amp;fit=crop&amp;w=800&amp;q=80" alt="Synthesizing Motion: Physics-Driven Spring Dynamics in UI" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#121826] via-transparent to-transparent opacity-80"></div>
+            <span class="absolute top-4 left-4 text-xs font-semibold px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-indigo-300 border border-white/10">
+              Design &amp; UX
+            </span>
+          </div>
+          <div class="p-6 flex flex-col flex-grow justify-between">
+            <div>
+              <div class="flex items-center gap-2 text-xs text-gray-400 mb-3">
+                <span>Sep 01, 2026</span>
+                <span>•</span>
+                <span>6 min read</span>
+              </div>
+              <h3 onclick="navigateTo('post')" class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors cursor-pointer leading-snug mb-3">
+                Synthesizing Motion: Physics-Driven Spring Dynamics in UI
+              </h3>
+              <p class="text-gray-400 text-sm leading-relaxed mb-6 line-clamp-2">
+                Moving away from cubic-bezier curves toward continuous force-based fluid gestures on the web.
+              </p>
+            </div>
+            <div class="flex items-center justify-between pt-4 border-t border-white/5">
+              <div class="flex items-center gap-2.5">
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&amp;fit=crop&amp;w=100&amp;h=100&amp;q=80" alt="Sarah Sterling" class="w-7 h-7 rounded-full object-cover">
+                <span class="text-xs font-semibold text-gray-300">Sarah Sterling</span>
+              </div>
+              <button onclick="navigateTo('post')" class="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
+                Read <i class="fa-solid fa-arrow-right text-[10px]"></i>
+              </button>
+            </div>
+          </div>
+        </article>
+      </div>
+      <div id="noResultsMsg" class="hidden text-center py-16">
+        <i class="fa-solid fa-cube text-4xl text-gray-600 mb-3"></i>
+        <p class="text-gray-400 text-lg">No articles found matching that criteria.</p>
+      </div>
+    </section>
+
+    <!-- Newsletter Banner -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div class="relative rounded-3xl overflow-hidden glass-card p-8 sm:p-12 border border-white/10 text-center">
+        <div class="max-w-2xl mx-auto relative z-10">
+          <span class="text-xs uppercase font-mono tracking-widest text-indigo-400 font-semibold">Weekly Dispatch</span>
+          <h2 class="text-2xl sm:text-4xl font-extrabold text-white mt-2 mb-4">Stay ahead of the next tech wave.</h2>
+          <p class="text-gray-300 text-sm sm:text-base mb-8">Join over 18,000 developers and design thinkers getting curations every Sunday. No spam, ever.</p>
+          <form onsubmit="handleNewsletter(event)" class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+            <input type="email" required="" placeholder="Enter your email address..." class="flex-grow px-4 py-3 rounded-xl bg-[#080c14] border border-white/15 text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 text-sm">
+            <button type="submit" class="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-medium text-sm transition-all shadow-md shadow-indigo-500/20 whitespace-nowrap">
+              Subscribe
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <main id="page-post" class="page-content hidden flex-grow">
+    <article class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-20">
+      <!-- Article Header -->
+      <header class="mb-10 text-center sm:text-left">
+        <div class="flex items-center justify-center sm:justify-start gap-3 mb-5">
+          <span class="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/15 border border-indigo-500/30 text-indigo-400">System Architecture</span>
+          <span class="text-gray-500 text-xs">•</span>
+          <span class="text-gray-400 text-xs"><i class="fa-regular fa-clock mr-1"></i> 8 min read</span>
+          <span class="text-gray-500 text-xs">•</span>
+          <span class="text-gray-400 text-xs"><i class="fa-regular fa-calendar mr-1"></i> Sep 28, 2026</span>
+        </div>
+        <h1 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight mb-6">
+          The Architecture of Agentic Intelligence in Modern Web Engines
+        </h1>
+        <div class="flex items-center justify-between flex-wrap gap-4 pt-6 border-t border-white/10">
+          <div class="flex items-center gap-4">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&amp;fit=crop&amp;w=120&amp;h=120&amp;q=80" alt="Elena Vance" class="w-12 h-12 rounded-full border-2 border-indigo-500/30 object-cover">
+            <div>
+              <div class="text-white font-bold">Elena Vance</div>
+              <div class="text-xs text-gray-400">Principal Systems Architect &amp; Researcher</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="sharePost()" class="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 transition-colors" title="Share link">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </button>
+            <button onclick="toggleBookmark(this)" class="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 transition-colors" title="Bookmark">
+              <i class="fa-regular fa-bookmark"></i>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Featured Image with gradient aura -->
+      <div class="relative rounded-2xl overflow-hidden mb-12 border border-white/10 shadow-2xl">
+        <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&amp;fit=crop&amp;w=1600&amp;q=80" alt="Neural Networks Artwork" class="w-full h-80 sm:h-96 object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-[#080c14] via-transparent to-transparent"></div>
+        <div class="absolute bottom-4 left-6 text-xs text-gray-400 font-mono">Figure 1.0: Real-time neural routing topologies in edge workers.</div>
+      </div>
+
+      <!-- Quick TOC Callout -->
+      <div class="glass-card rounded-2xl p-6 mb-10 border border-white/10">
+        <h4 class="text-sm font-bold uppercase tracking-wider text-indigo-400 mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-list-ul"></i> Table of Contents
+        </h4>
+        <ul class="space-y-2 text-sm text-gray-300">
+          <li><a href="#section-1" class="hover:text-indigo-400 transition-colors flex items-center gap-2"><span class="text-xs text-gray-500 font-mono">01.</span> The Shift from Reactive to Agentic</a></li>
+          <li><a href="#section-2" class="hover:text-indigo-400 transition-colors flex items-center gap-2"><span class="text-xs text-gray-500 font-mono">02.</span> Edge Workers &amp; Vector Memory Spaces</a></li>
+          <li><a href="#section-3" class="hover:text-indigo-400 transition-colors flex items-center gap-2"><span class="text-xs text-gray-500 font-mono">03.</span> Tool Execution Protocols &amp; Safety Nets</a></li>
+        </ul>
+      </div>
+
+      <!-- Post Body -->
+      <div class="prose prose-invert max-w-none text-gray-300 leading-relaxed space-y-6 text-base sm:text-lg">
+        <p class="font-normal leading-relaxed text-gray-200 text-lg">
+          For over three decades, web infrastructure has been fundamentally deterministic: an HTTP event occurs, a server queries a relational database, renders a payload, and delivers it to an endpoint. Yet over the last twenty-four months, that static pipeline has given way to an organic computing model powered by autonomous agents.
+        </p>
+
+        <h2 id="section-1" class="text-2xl sm:text-3xl font-bold text-white pt-6 border-t border-white/10">
+          01. The Shift from Reactive to Agentic
+        </h2>
+        <p>
+          In traditional applications, state transitions are rigidly scripted. With agentic runtimes, code blocks negotiate dynamic pathways in response to ambiguous user prompts. This means the client layer isn't merely displaying HTML; it's communicating with an orchestrator continuously assessing step results.
+        </p>
+
+        <!-- Quote Block -->
+        <blockquote class="my-6 p-6 rounded-2xl border-l-4 border-indigo-500 bg-indigo-500/5 text-indigo-200 italic font-medium">
+          "The modern interface isn't a collection of static inputs—it is a negotiated contract between user intention and multi-hop model autonomy."
+        </blockquote>
+
+        <h2 id="section-2" class="text-2xl sm:text-3xl font-bold text-white pt-6 border-t border-white/10">
+          02. Edge Workers &amp; Vector Memory Spaces
+        </h2>
+        <p>
+          To maintain sub-50ms latency across conversational sessions, teams are embedding ephemeral vector caches directly into geographically distributed edge nodes. Rather than hitting centralized PostgreSQL clusters for semantic lookups, localized memory trees retain conversation history.
+        </p>
+
+        <!-- Interactive Code Snippet Block -->
+        <div class="rounded-xl overflow-hidden border border-white/10 bg-[#0d121f] text-sm my-6 font-mono">
+          <div class="flex items-center justify-between px-4 py-2 bg-white/5 border-b border-white/10 text-xs text-gray-400">
+            <span class="flex items-center gap-2"><i class="fa-solid fa-code text-indigo-400"></i> agent-router.ts</span>
+            <button onclick="copyCodeSnippet(this)" class="hover:text-white transition-colors flex items-center gap-1">
+              <i class="fa-regular fa-copy"></i> <span>Copy</span>
+            </button>
+          </div>
+          <pre class="p-4 text-gray-300 overflow-x-auto"><code id="articleSampleCode">import { AgentRuntime, VectorStore } from '@novapulse/agent-core';
+
+export async function handleRequest(request: Request): Promise&lt;Response&gt; {
+  const session = await AgentRuntime.hydrateSession(request);
+  const decisionTree = await session.evaluateIntent({
+    tools: ['databaseSearch', 'calcAnalytics', 'renderPreview'],
+    temperature: 0.2,
+  });
+
+  return Response.json({
+    executionPlan: decisionTree.steps,
+    confidence: decisionTree.certaintyScore
+  });
+}</code></pre>
+        </div>
+
+        <h2 id="section-3" class="text-2xl sm:text-3xl font-bold text-white pt-6 border-t border-white/10">
+          03. Tool Execution Protocols &amp; Safety Nets
+        </h2>
+        <p>
+          Executing arbitrary operations on behalf of clients demands non-negotiable isolation guardrails. By combining WebAssembly sandboxes with runtime signature verification, modern applications can safely grant autonomy to internal agents without compromising data sovereignty.
+        </p>
+      </div>
+
+      <!-- Reactions Section -->
+      <div class="mt-12 pt-8 border-t border-white/10 flex items-center justify-between flex-wrap gap-4">
+        <div class="flex items-center gap-2">
+          <button onclick="handleReaction(this, 'heart')" class="reaction-btn px-4 py-2 rounded-xl bg-white/5 hover:bg-red-500/20 hover:text-red-400 border border-white/10 text-sm font-semibold flex items-center gap-2 transition-all">
+            <i class="fa-solid fa-heart text-red-500"></i> <span class="reaction-count">248</span>
+          </button>
+          <button onclick="handleReaction(this, 'rocket')" class="reaction-btn px-4 py-2 rounded-xl bg-white/5 hover:bg-indigo-500/20 hover:text-indigo-400 border border-white/10 text-sm font-semibold flex items-center gap-2 transition-all">
+            <i class="fa-solid fa-rocket text-indigo-400"></i> <span class="reaction-count">94</span>
+          </button>
+          <button onclick="handleReaction(this, 'sparkle')" class="reaction-btn px-4 py-2 rounded-xl bg-white/5 hover:bg-yellow-500/20 hover:text-yellow-400 border border-white/10 text-sm font-semibold flex items-center gap-2 transition-all">
+            <i class="fa-solid fa-sparkles text-yellow-400"></i> <span class="reaction-count">112</span>
+          </button>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-400">Share to:</span>
+          <a href="#" onclick="showToast('Link copied to clipboard!')" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10"><i class="fa-brands fa-x-twitter text-xs"></i></a>
+          <a href="#" onclick="showToast('Link copied to clipboard!')" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10"><i class="fa-brands fa-linkedin-in text-xs"></i></a>
+        </div>
+      </div>
+
+      <!-- Author Bio Box -->
+      <div class="mt-12 p-8 rounded-2xl glass-card border border-white/10 flex flex-col sm:flex-row items-center sm:items-start gap-6">
+        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&amp;fit=crop&amp;w=200&amp;h=200&amp;q=80" alt="Elena Vance" class="w-20 h-20 rounded-2xl object-cover border-2 border-indigo-500/40 shadow-lg">
+        <div class="text-center sm:text-left">
+          <div class="flex items-center justify-center sm:justify-start gap-3 mb-2">
+            <h3 class="text-lg font-bold text-white">Elena Vance</h3>
+            <span class="text-xs font-mono bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded border border-indigo-500/30">Staff Writer</span>
+          </div>
+          <p class="text-sm text-gray-400 leading-relaxed mb-4">
+            Elena researches edge-cloud topologies and autonomous systems at NovaPulse. Former lead engineer at HyperMesh, she writes about the convergence of compilers and intelligent systems.
+          </p>
+          <div class="flex items-center justify-center sm:justify-start gap-4 text-sm text-gray-400">
+            <a href="javascript:void(0)" onclick="navigateTo('about')" class="text-indigo-400 hover:underline flex items-center gap-1">More about author <i class="fa-solid fa-arrow-right text-xs"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comments Stream Simulation -->
+      <section class="mt-16">
+        <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+          <span>Responses</span>
+          <span class="text-xs bg-white/10 px-2.5 py-0.5 rounded-full font-mono text-gray-300" id="commentCount">2</span>
+        </h3>
+
+        <!-- Comment Form -->
+        <form onsubmit="submitComment(event)" class="mb-8">
+          <div class="glass-card rounded-2xl p-4 border border-white/10 focus-within:border-indigo-500 transition-colors">
+            <textarea id="commentText" required="" rows="3" placeholder="What are your thoughts on edge agent sandboxes?" class="w-full bg-transparent border-0 text-white placeholder-gray-500 focus:outline-none text-sm resize-none"></textarea>
+            <div class="flex items-center justify-between pt-3 border-t border-white/5">
+              <span class="text-xs text-gray-500">Markdown supported</span>
+              <button type="submit" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md transition-all">
+                Publish Reply
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <div id="commentList" class="space-y-4">
+          <div class="glass-card rounded-2xl p-5 border border-white/10">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&amp;fit=crop&amp;w=100&amp;h=100&amp;q=80" class="w-8 h-8 rounded-full object-cover">
+                <div>
+                  <h4 class="text-sm font-semibold text-white">Marcus Chen</h4>
+                  <span class="text-xs text-gray-400">Yesterday</span>
+                </div>
+              </div>
+            </div>
+            <p class="text-sm text-gray-300">The vector caching point is spot on. We reduced cold starts by 85% by maintaining memory structures in Cloudflare KV before spawning the full runner.</p>
+          </div>
+
+          <div class="glass-card rounded-2xl p-5 border border-white/10">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&amp;fit=crop&amp;w=100&amp;h=100&amp;q=80" class="w-8 h-8 rounded-full object-cover">
+                <div>
+                  <h4 class="text-sm font-semibold text-white">Sarah Sterling</h4>
+                  <span class="text-xs text-gray-400">2 days ago</span>
+                </div>
+              </div>
+            </div>
+            <p class="text-sm text-gray-300">Terrific breakdown of tool execution sandboxes. Would love to read your take on memory leak mitigation within long-lived sessions next!</p>
+          </div>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <main id="page-about" class="page-content hidden flex-grow">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-20">
+      
+      <!-- Bio Banner -->
+      <div class="relative rounded-3xl overflow-hidden glass-card p-8 sm:p-14 border border-white/10 mb-12">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+          <div class="lg:col-span-4 text-center lg:text-left">
+            <div class="relative inline-block">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&amp;fit=crop&amp;w=400&amp;h=400&amp;q=80" alt="Elena Vance" class="w-48 h-48 sm:w-56 sm:h-56 rounded-3xl object-cover mx-auto shadow-2xl border-2 border-indigo-500/30">
+              <div class="absolute -bottom-2 -right-2 bg-gradient-to-r from-emerald-500 to-green-500 text-white text-[11px] font-bold px-3 py-1 rounded-full border-2 border-[#080c14] flex items-center gap-1.5 shadow-lg">
+                <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> Available for speaking
+              </div>
+            </div>
+          </div>
+          <div class="lg:col-span-8">
+            <span class="text-xs font-mono uppercase tracking-widest text-indigo-400 font-semibold">About The Project</span>
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mt-2 mb-4 leading-tight">
+              Exploring the perimeter of <span class="text-gradient">high-performance code</span> and design.
+            </h1>
+            <p class="text-gray-300 leading-relaxed mb-6 text-base sm:text-lg">
+              NovaPulse is an independent publication founded by Elena Vance, built to dissect cutting-edge technologies, systems engineering, reactive UI design, and artificial intelligence without marketing buzzwords.
+            </p>
+            <div class="flex flex-wrap gap-2 mb-8">
+              <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-white/5 border border-white/10 text-indigo-300">TypeScript / Rust</span>
+              <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-white/5 border border-white/10 text-purple-300">Distributed Systems</span>
+              <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-white/5 border border-white/10 text-pink-300">Generative AI</span>
+              <span class="px-3 py-1.5 rounded-xl text-xs font-medium bg-white/5 border border-white/10 text-cyan-300">Design Systems</span>
+            </div>
+            <div class="flex items-center gap-4 text-lg">
+              <a href="#" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-300 hover:text-white hover:bg-indigo-600 transition-all"><i class="fa-brands fa-github"></i></a>
+              <a href="#" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-300 hover:text-white hover:bg-indigo-600 transition-all"><i class="fa-brands fa-x-twitter"></i></a>
+              <a href="#" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-300 hover:text-white hover:bg-indigo-600 transition-all"><i class="fa-brands fa-linkedin-in"></i></a>
+              <a href="#" class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-300 hover:text-white hover:bg-indigo-600 transition-all"><i class="fa-solid fa-rss"></i></a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
+        <div class="glass-card rounded-2xl p-6 text-center border border-white/10">
+          <div class="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">120K+</div>
+          <div class="text-xs text-gray-400 font-medium mt-1">Monthly Readers</div>
+        </div>
+        <div class="glass-card rounded-2xl p-6 text-center border border-white/10">
+          <div class="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">48+</div>
+          <div class="text-xs text-gray-400 font-medium mt-1">Deep-Dive Essays</div>
+        </div>
+        <div class="glass-card rounded-2xl p-6 text-center border border-white/10">
+          <div class="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-rose-400">18K</div>
+          <div class="text-xs text-gray-400 font-medium mt-1">Newsletter Subs</div>
+        </div>
+        <div class="glass-card rounded-2xl p-6 text-center border border-white/10">
+          <div class="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-indigo-400">99.9%</div>
+          <div class="text-xs text-gray-400 font-medium mt-1">Static Uptime</div>
+        </div>
+      </div>
+
+      <!-- Contact Message Section -->
+      <div class="max-w-2xl mx-auto glass-card rounded-3xl p-8 sm:p-12 border border-white/10">
+        <div class="text-center mb-8">
+          <h2 class="text-2xl sm:text-3xl font-bold text-white">Get in Touch</h2>
+          <p class="text-gray-400 text-sm mt-2">Have a question, feedback, or speaking proposition? Drop a note below.</p>
+        </div>
+        <form onsubmit="handleContactSubmit(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Your Name</label>
+            <input type="text" required="" placeholder="Jane Doe" class="w-full bg-[#080c14] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition-colors">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Email Address</label>
+            <input type="email" required="" placeholder="jane@domain.com" class="w-full bg-[#080c14] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition-colors">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Message</label>
+            <textarea required="" rows="4" placeholder="Let's build something awesome..." class="w-full bg-[#080c14] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition-colors resize-none"></textarea>
+          </div>
+          <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 hover:opacity-95 text-white font-semibold text-sm transition-all shadow-lg shadow-indigo-500/20">
+            Send Message
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer class="border-t border-white/10 bg-[#080c14] text-gray-400 text-sm mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-pink-500 flex items-center justify-center text-white text-sm font-bold">
+            <i class="fa-solid fa-bolt"></i>
+          </div>
+          <span class="font-bold text-white tracking-tight">NovaPulse Blog</span>
+          <span class="text-xs text-gray-600">| Ready for GitHub Pages deployment</span>
+        </div>
+        <div class="flex items-center gap-6 text-xs text-gray-400">
+          <a href="javascript:void(0)" onclick="navigateTo('home')" class="hover:text-white transition-colors">Feed</a>
+          <a href="javascript:void(0)" onclick="navigateTo('post')" class="hover:text-white transition-colors">Articles</a>
+          <a href="javascript:void(0)" onclick="navigateTo('about')" class="hover:text-white transition-colors">About &amp; Contact</a>
+          <a href="javascript:void(0)" onclick="toggleExportModal()" class="hover:text-indigo-400 transition-colors font-medium">Export GitHub Bundle</a>
+        </div>
+      </div>
+      <div class="mt-8 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 gap-4">
+        <p>© 2026 NovaPulse Engine. Released under MIT License.</p>
+        <p>Zero configuration static site designed for instant git push.</p>
+      </div>
+    </div>
+  </footer>
+
+  <div id="exportModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="glass-card bg-[#0e1320] border border-white/15 rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-white/5">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-purple-600/20 text-purple-400 border border-purple-500/30 flex items-center justify-center">
+            <i class="fa-brands fa-github text-lg"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-white text-base">GitHub Pages Deployment Bundle</h3>
+            <p class="text-xs text-gray-400">All-in-one bundle: 3 standalone HTML pages or single-file deployment</p>
+          </div>
+        </div>
+        <button onclick="toggleExportModal()" class="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Quick Steps -->
+      <div class="p-6 bg-indigo-950/20 border-b border-white/5 text-xs text-gray-300">
+        <div class="font-bold text-indigo-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <i class="fa-solid fa-terminal"></i> 3-Step Instant GitHub Deployment:
+        </div>
+        <ol class="list-decimal list-inside space-y-1 text-gray-300">
+          <li>Create a new repository on GitHub (e.g., <code class="text-indigo-300 bg-white/5 px-1 py-0.5 rounded font-mono">my-blog</code>).</li>
+          <li>Save this file as <code class="text-indigo-300 bg-white/5 px-1 py-0.5 rounded font-mono">index.html</code> directly in your repo root.</li>
+          <li>Go to <strong>Settings &gt; Pages</strong> &gt; Set branch to <strong>main</strong> &gt; Save. Your blog is live immediately!</li>
+        </ol>
+      </div>
+
+      <!-- Code Inspector Tabs -->
+      <div class="px-6 pt-4 flex items-center justify-between border-b border-white/10 bg-[#080c14]">
+        <div class="flex items-center gap-2">
+          <button id="modalTab1" onclick="switchExportTab('full')" class="export-tab px-3 py-1.5 rounded-lg text-xs font-mono font-medium text-gray-400 hover:text-white">index.html (Full App)</button>
+          <button id="modalTab2" onclick="switchExportTab('readme')" class="export-tab px-3 py-1.5 rounded-lg text-xs font-mono font-medium text-gray-400 hover:text-white">README.md</button>
+          <button id="modalTab3" onclick="switchExportTab('commands')" class="export-tab px-3 py-1.5 rounded-lg text-xs font-mono font-medium text-white bg-indigo-600 border border-indigo-500/40">Git Commands</button>
+        </div>
+        <button onclick="copyExportCode()" class="text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5">
+          <i class="fa-regular fa-copy"></i> <span>Copy Content</span>
+        </button>
+      </div>
+
+      <!-- Code Box -->
+      <div class="p-6 overflow-y-auto flex-grow bg-[#05070d] font-mono text-xs text-gray-300">
+        <pre><code id="exportCodeBlock" class="whitespace-pre"># Step 1: Initialize git in your local folder
+git init
+
+# Step 2: Add all files
+git add .
+
+# Step 3: Create initial commit
+git commit -m "feat: launch NovaPulse blog"
+
+# Step 4: Link to your GitHub repo
+git branch -M main
+git remote add origin https://github.com/&lt;YOUR_USERNAME&gt;/&lt;YOUR_REPO&gt;.git
+
+# Step 5: Push to GitHub!
+git push -u origin main
+</code></pre>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 px-6 border-t border-white/10 flex items-center justify-between bg-white/5">
+        <span class="text-xs text-gray-400">Zero build step needed • Pure HTML + Tailwind CDN</span>
+        <button onclick="downloadHtmlFile()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-medium text-xs shadow-md transition-all flex items-center gap-2">
+          <i class="fa-solid fa-download"></i> <span>Download index.html</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastNotification" class="fixed bottom-6 right-6 z-50 transform transition-all duration-300 pointer-events-none translate-y-24 opacity-0">
+    <div class="glass-card bg-indigo-950/90 border border-indigo-500/40 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3">
+      <i class="fa-solid fa-circle-check text-indigo-400"></i>
+      <span id="toastMessage" class="text-sm font-medium">Copied to clipboard!</span>
+    </div>
+  </div>
+
+  <script>
+    // Sample Blog Posts Data
+    const postsData = [
+      {
+        id: 1,
+        title: "The Architecture of Agentic Intelligence in Modern Web Engines",
+        snippet: "How autonomous tool calling, vector caches, and edge-native neural runtimes are rewriting reactive UI pipelines.",
+        category: "ai",
+        categoryName: "Artificial Intelligence",
+        readTime: "8 min read",
+        date: "Sep 28, 2026",
+        author: "Elena Vance",
+        authorImg: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80",
+        coverImg: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
+        featured: true
+      },
+      {
+        id: 2,
+        title: "Micro-Frontends with WebAssembly & Rust in 2026",
+        snippet: "Why compiling isolated components down to native wasm modules gives 60fps animations on lower-end hardware.",
+        category: "engineering",
+        categoryName: "System Architecture",
+        readTime: "5 min read",
+        date: "Sep 25, 2026",
+        author: "Marcus Chen",
+        authorImg: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&h=100&q=80",
+        coverImg: "https://images.unsplash.com/photo-1629654297299-c8506221ca97?auto=format&fit=crop&w=800&q=80",
+        featured: false
+      },
+      {
+        id: 3,
+        title: "Beyond Flat Design: The Comeback of Vivid Glass Gradients",
+        snippet: "Modern GPU-accelerated backdrop filters allow nuanced optical refraction that elevates visual hierarchy.",
+        category: "design",
+        categoryName: "Design & UX",
+        readTime: "4 min read",
+        date: "Sep 20, 2026",
+        author: "Sarah Sterling",
+        authorImg: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&h=100&q=80",
+        coverImg: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80",
+        featured: false
+      },
+      {
+        id: 4,
+        title: "Quantum Key Distribution Protocols for Web Developers",
+        snippet: "Preparing TLS handshakes and asymmetric crypto keys for post-quantum decryption resistance.",
+        category: "future",
+        categoryName: "Future Tech",
+        readTime: "11 min read",
+        date: "Sep 14, 2026",
+        author: "Elena Vance",
+        authorImg: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80",
+        coverImg: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=800&q=80",
+        featured: false
+      },
+      {
+        id: 5,
+        title: "Zero-Latency Optimistic State in Distributed CRDTs",
+        snippet: "Collaborative canvas and document editors without server round-trip jitters using state-based CRDTs.",
+        category: "engineering",
+        categoryName: "System Architecture",
+        readTime: "7 min read",
+        date: "Sep 09, 2026",
+        author: "David Thorne",
+        authorImg: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&h=100&q=80",
+        coverImg: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80",
+        featured: false
+      },
+      {
+        id: 6,
+        title: "Synthesizing Motion: Physics-Driven Spring Dynamics in UI",
+        snippet: "Moving away from cubic-bezier curves toward continuous force-based fluid gestures on the web.",
+        category: "design",
+        categoryName: "Design & UX",
+        readTime: "6 min read",
+        date: "Sep 01, 2026",
+        author: "Sarah Sterling",
+        authorImg: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&h=100&q=80",
+        coverImg: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=800&q=80",
+        featured: false
+      }
+    ];
+
+    let currentCategory = 'all';
+    let searchQuery = '';
+
+    // Render Posts in Grid
+    function renderPosts() {
+      const container = document.getElementById('postsContainer');
+      const noResults = document.getElementById('noResultsMsg');
+      
+      const filtered = postsData.filter(post => {
+        const matchesCategory = currentCategory === 'all' || post.category === currentCategory;
+        const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                              post.snippet.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesCategory && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '';
+        noResults.classList.remove('hidden');
+        return;
+      }
+
+      noResults.classList.add('hidden');
+      container.innerHTML = filtered.map(post => `
+        <article class="glass-card rounded-3xl overflow-hidden border border-white/10 flex flex-col group transition-all duration-300 hover:-translate-y-1">
+          <div class="relative h-48 overflow-hidden">
+            <img src="${post.coverImg}" alt="${post.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#121826] via-transparent to-transparent opacity-80"></div>
+            <span class="absolute top-4 left-4 text-xs font-semibold px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-indigo-300 border border-white/10">
+              ${post.categoryName}
+            </span>
+          </div>
+          <div class="p-6 flex flex-col flex-grow justify-between">
+            <div>
+              <div class="flex items-center gap-2 text-xs text-gray-400 mb-3">
+                <span>${post.date}</span>
+                <span>•</span>
+                <span>${post.readTime}</span>
+              </div>
+              <h3 onclick="navigateTo('post')" class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors cursor-pointer leading-snug mb-3">
+                ${post.title}
+              </h3>
+              <p class="text-gray-400 text-sm leading-relaxed mb-6 line-clamp-2">
+                ${post.snippet}
+              </p>
+            </div>
+            <div class="flex items-center justify-between pt-4 border-t border-white/5">
+              <div class="flex items-center gap-2.5">
+                <img src="${post.authorImg}" alt="${post.author}" class="w-7 h-7 rounded-full object-cover">
+                <span class="text-xs font-semibold text-gray-300">${post.author}</span>
+              </div>
+              <button onclick="navigateTo('post')" class="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
+                Read <i class="fa-solid fa-arrow-right text-[10px]"></i>
+              </button>
+            </div>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    // Filter handling
+    function filterPosts(cat, btn) {
+      currentCategory = cat;
+      document.querySelectorAll('.category-chip').forEach(b => {
+        b.className = 'category-chip px-4 py-2 rounded-xl text-xs font-semibold bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 border border-white/5 transition-all whitespace-nowrap';
+      });
+      btn.className = 'category-chip px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-sm transition-all whitespace-nowrap';
+      renderPosts();
+    }
+
+    // Search handling
+    function searchPosts(query) {
+      searchQuery = query;
+      renderPosts();
+    }
+
+    // Navigation Switcher (simulates moving between index.html, post.html, about.html)
+    function navigateTo(pageKey) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Hide all pages
+      document.querySelectorAll('.page-content').forEach(el => el.classList.add('hidden'));
+
+      // Deactivate all nav buttons
+      document.querySelectorAll('.nav-item').forEach(el => {
+        el.className = 'nav-item px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 text-gray-400 hover:text-white hover:bg-white/5 flex items-center gap-2';
+      });
+
+      // Show target page
+      const targetPage = document.getElementById(`page-${pageKey}`);
+      if (targetPage) targetPage.classList.remove('hidden');
+
+      // Highlight active button
+      const activeBtn = document.getElementById(`nav-btn-${pageKey}`);
+      if (activeBtn) {
+        activeBtn.className = 'nav-item active-nav px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 text-white bg-indigo-600 shadow-md shadow-indigo-600/30 flex items-center gap-2';
+      }
+
+      // Toggle scroll progress bar visibility only for post view
+      const scrollBar = document.getElementById('scrollProgressBar');
+      if (pageKey === 'post') {
+        scrollBar.classList.remove('opacity-0');
+      } else {
+        scrollBar.style.width = '0%';
+        scrollBar.classList.add('opacity-0');
+      }
+    }
+
+    // Reading Scroll Progress Listener
+    window.addEventListener('scroll', () => {
+      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      const bar = document.getElementById('scrollProgressBar');
+      if (bar) bar.style.width = scrolled + '%';
+    });
+
+    // Reactions counter
+    function handleReaction(btn, type) {
+      const countSpan = btn.querySelector('.reaction-count');
+      let currentVal = parseInt(countSpan.textContent, 10);
+      if (!btn.dataset.reacted) {
+        countSpan.textContent = currentVal + 1;
+        btn.dataset.reacted = 'true';
+        btn.classList.add('bg-white/20', 'border-indigo-400');
+        showToast('Reaction recorded! 🚀');
+      } else {
+        countSpan.textContent = currentVal - 1;
+        delete btn.dataset.reacted;
+        btn.classList.remove('bg-white/20', 'border-indigo-400');
+      }
+    }
+
+    // Bookmark Toggle
+    function toggleBookmark(btn) {
+      const icon = btn.querySelector('i');
+      if (icon.classList.contains('fa-regular')) {
+        icon.classList.remove('fa-regular');
+        icon.classList.add('fa-solid', 'text-indigo-400');
+        showToast('Article saved to bookmarks!');
+      } else {
+        icon.classList.add('fa-regular');
+        icon.classList.remove('fa-solid', 'text-indigo-400');
+        showToast('Bookmark removed.');
+      }
+    }
+
+    // Share link
+    function sharePost() {
+      navigator.clipboard?.writeText(window.location.href);
+      showToast('Article URL copied to clipboard!');
+    }
+
+    // Comment submission
+    function submitComment(e) {
+      e.preventDefault();
+      const txt = document.getElementById('commentText');
+      if (!txt.value.trim()) return;
+
+      const list = document.getElementById('commentList');
+      const counter = document.getElementById('commentCount');
+      const newComment = document.createElement('div');
+      newComment.className = 'glass-card rounded-2xl p-5 border border-white/10 animate-fade-in';
+      newComment.innerHTML = `
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">You</div>
+            <div>
+              <h4 class="text-sm font-semibold text-white">Community Reader</h4>
+              <span class="text-xs text-gray-400">Just now</span>
+            </div>
+          </div>
+        </div>
+        <p class="text-sm text-gray-300">${txt.value.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>
+      `;
+
+      list.prepend(newComment);
+      counter.textContent = parseInt(counter.textContent) + 1;
+      txt.value = '';
+      showToast('Your comment is published!');
+    }
+
+    // Newsletter form
+    function handleNewsletter(e) {
+      e.preventDefault();
+      showToast('Welcome aboard! You are now subscribed.');
+      e.target.reset();
+    }
+
+    // Contact form
+    function handleContactSubmit(e) {
+      e.preventDefault();
+      showToast('Message transmitted! Elena will get back to you shortly.');
+      e.target.reset();
+    }
+
+    // Toast utility
+    let toastTimeout;
+    function showToast(msg) {
+      const toast = document.getElementById('toastNotification');
+      const toastMsg = document.getElementById('toastMessage');
+      toastMsg.textContent = msg;
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.add('translate-y-24', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 3000);
+    }
+
+    // Mobile menu toggle
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobileMenu');
+      menu.classList.toggle('hidden');
+    }
+
+    // Copy Code Helper
+    function copyCodeSnippet(btn) {
+      const code = document.getElementById('articleSampleCode').innerText;
+      copyToClipboard(code);
+      const span = btn.querySelector('span');
+      span.textContent = 'Copied!';
+      setTimeout(() => { span.textContent = 'Copy'; }, 2000);
+    }
+
+    function copyToClipboard(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      showToast('Copied to clipboard!');
+    }
+
+    const bundleContent = {
+      full: `<!-- 
+  NovaPulse Blog - GitHub Pages Ready
+  To host on GitHub:
+  1. Save this exact code as index.html
+  2. Push to your repo
+  3. Enable Settings -> Pages -> Deploy from main
+-->\n` + document.documentElement.outerHTML.slice(0, 1500) + '\n\n... [Complete self-contained HTML including all pages] ...',
+      readme: `# ⚡ NovaPulse Blog Template
+
+A hyper-modern, gradient-accented blog built with Tailwind CSS, ready for **GitHub Pages** deployment with 0 build steps.
+
+## 🚀 Quick Setup for GitHub Pages
+
+1. **Create Repository:** Create a new repository on GitHub named \`your-username.github.io\` (or any name for project pages).
+2. **Add Files:** Put \`index.html\` in the root of the repository.
+3. **Push to GitHub:**
+   \`\`\`bash
+   git init
+   git add .
+   git commit -m "Initial NovaPulse Blog release"
+   git branch -M main
+   git remote add origin https://github.com/<your-username>/<your-repo-name>.git
+   git push -u origin main
+   \`\`\`
+4. **Enable Pages:**
+   - Go to **Settings** -> **Pages**.
+   - Under *Build and deployment*, set Source to **Deploy from a branch**.
+   - Select \`main\` and \`/ (root)\`, then click **Save**.
+
+Your blog is now globally published on GitHub's high-speed CDN!
+`,
+      commands: `# Step 1: Initialize git in your local folder
+git init
+
+# Step 2: Add all files
+git add .
+
+# Step 3: Create initial commit
+git commit -m "feat: launch NovaPulse blog"
+
+# Step 4: Link to your GitHub repo
+git branch -M main
+git remote add origin https://github.com/<YOUR_USERNAME>/<YOUR_REPO>.git
+
+# Step 5: Push to GitHub!
+git push -u origin main
+`
+    };
+
+    function toggleExportModal() {
+      const modal = document.getElementById('exportModal');
+      modal.classList.toggle('hidden');
+      if (!modal.classList.contains('hidden')) {
+        switchExportTab('readme');
+      }
+    }
+
+    let activeExportKey = 'readme';
+
+    function switchExportTab(key) {
+      activeExportKey = key;
+      document.querySelectorAll('.export-tab').forEach(b => {
+        b.className = 'export-tab px-3 py-1.5 rounded-lg text-xs font-mono font-medium text-gray-400 hover:text-white';
+      });
+
+      if (key === 'full') {
+        document.getElementById('modalTab1').className = 'export-tab px-3 py-1.5 rounded-lg text-xs font-mono font-medium text-white bg-indigo-600 border border-indigo-500/40';
+        document.getElementById('exportCodeBlock').textContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+      } else if (key === 'readme') {
+        document.getElementById('modalTab2').className = 'export-tab px-3 py-1.5 rounded-lg text-xs font-mono font-medium text-white bg-indigo-600 border border-indigo-500/40';
+        document.getElementById('exportCodeBlock').textContent = bundleContent.readme;
+      } else if (key === 'commands') {
+        document.getElementById('modalTab3').className = 'export-tab px-3 py-1.5 rounded-lg text-xs font-mono font-medium text-white bg-indigo-600 border border-indigo-500/40';
+        document.getElementById('exportCodeBlock').textContent = bundleContent.commands;
+      }
+    }
+
+    function copyExportCode() {
+      const text = document.getElementById('exportCodeBlock').textContent;
+      copyToClipboard(text);
+    }
+
+    function downloadHtmlFile() {
+      const fullHtml = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+      const blob = new Blob([fullHtml], { type: 'text/html' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'index.html';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('index.html downloaded successfully!');
+    }
+
+    // Initial render
+    window.addEventListener('DOMContentLoaded', () => {
+      renderPosts();
+    });
+  </script>
+
+</body></html>
